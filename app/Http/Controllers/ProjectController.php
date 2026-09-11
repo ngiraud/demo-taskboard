@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TaskStatus;
 use App\Http\Requests\StoreProjectRequest;
+use App\Models\Project;
 use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -40,6 +43,23 @@ class ProjectController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Project created.')]);
 
-        return to_route('projects.index');
+        return to_route('projects.show', $project);
+    }
+
+    /**
+     * Display the kanban board of the project.
+     *
+     * The current team is resolved so that the project binding is scoped to it.
+     */
+    public function show(Team $currentTeam, Project $project): Response
+    {
+        Gate::authorize('view', $project);
+
+        return Inertia::render('projects/Show', [
+            'project' => $project,
+            'tasks' => $project->tasks()->with('assignee:id,name')->oldest('id')->get(),
+            'members' => $project->members()->orderBy('name')->get(['users.id', 'users.name']),
+            'statuses' => TaskStatus::options(),
+        ]);
     }
 }

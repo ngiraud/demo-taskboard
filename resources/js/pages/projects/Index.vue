@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { FolderKanban, Plus } from '@lucide/vue';
 import CreateProjectModal from '@/components/CreateProjectModal.vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
-import { index } from '@/routes/projects';
+import { index, show } from '@/routes/projects';
 import type { Project, Team } from '@/types';
 
 defineProps<{
@@ -40,10 +40,11 @@ defineOptions({
         </div>
 
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <div
+            <Link
                 v-for="project in projects"
                 :key="project.id"
-                class="flex flex-col gap-2 rounded-xl border p-4"
+                :href="show([currentTeam.slug, project.id])"
+                class="hover:bg-muted/50 flex flex-col gap-2 rounded-xl border p-4 transition-colors"
             >
                 <div class="flex items-center gap-2 font-medium">
                     <FolderKanban class="text-muted-foreground size-4" />
@@ -60,7 +61,7 @@ defineOptions({
                     <span>{{ project.tasks_count }} tasks</span>
                     <span>Owner: {{ project.owner?.name }}</span>
                 </div>
-            </div>
+            </Link>
         </div>
 
         <p

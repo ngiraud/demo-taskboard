@@ -70,4 +70,12 @@ class Project extends Model
     {
         return $this->hasMany(Task::class);
     }
+
+    /**
+     * Determine if the given user is a member of the project.
+     */
+    public function hasMember(User $user): bool
+    {
+        return $this->members()->whereKey($user->id)->exists();
+    }
 }

@@ -11,3 +11,19 @@ export type Project = {
     owner?: ProjectMember;
     tasks_count?: number;
 };
+
+export type TaskStatus = 'todo' | 'in_progress' | 'done';
+
+export type StatusOption = {
+    value: TaskStatus;
+    label: string;
+};
+
+export type Task = {
+    id: number;
+    title: string;
+    description: string | null;
+    status: TaskStatus;
+    assignee_id: number | null;
+    assignee: ProjectMember | null;
+};
