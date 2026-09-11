@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { Plus } from '@lucide/vue';
+import { ref } from 'vue';
 import CreateTaskModal from '@/components/CreateTaskModal.vue';
 import Heading from '@/components/Heading.vue';
 import TaskCard from '@/components/TaskCard.vue';
@@ -8,6 +9,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useInitials } from '@/composables/useInitials';
 import { index, show } from '@/routes/projects';
+import { update } from '@/routes/projects/tasks';
 import type {
     Project,
     ProjectMember,
@@ -44,6 +46,45 @@ const { getInitials } = useInitials();
 
 const tasksByStatus = (status: TaskStatus) =>
     props.tasks.filter((task) => task.status === status);
+
+const draggedTaskId = ref<number | null>(null);
+const hoveredStatus = ref<TaskStatus | null>(null);
+
+function startDrag(event: DragEvent, task: Task) {
+    draggedTaskId.value = task.id;
+    event.dataTransfer?.setData('text/plain', String(task.id));
+}
+
+function moveTask(status: TaskStatus) {
+    const movedTask = props.tasks.find(
+        (task) => task.id === draggedTaskId.value,
+    );
+
+    draggedTaskId.value = null;
+    hoveredStatus.value = null;
+
+    if (!movedTask || movedTask.status === status) {
+        return;
+    }
+
+    router
+        .optimistic<{ tasks: Task[] }>((pageProps) => ({
+            tasks: pageProps.tasks.map((task) =>
+                task.id === movedTask.id ? { ...task, status } : task,
+            ),
+        }))
+        .visit(
+            update.patch([
+                props.currentTeam.slug,
+                props.project.id,
+                movedTask.id,
+            ]),
+            {
+                data: { status },
+                preserveScroll: true,
+            },
+        );
+}
 </script>
 
 <template>
@@ -80,11 +121,17 @@ const tasksByStatus = (status: TaskStatus) =>
             </div>
         </div>
 
-        <div class="grid flex-1 items-start gap-4 md:grid-cols-3">
+        <div class="grid flex-1 gap-4 md:grid-cols-3">
             <section
                 v-for="status in statuses"
                 :key="status.value"
-                class="bg-muted/50 flex flex-col gap-3 rounded-xl p-3"
+                class="flex min-h-64 flex-col gap-3 rounded-xl p-3 transition-colors"
+                :class="
+                    hoveredStatus === status.value ? 'bg-muted' : 'bg-muted/50'
+                "
+                @dragover.prevent="hoveredStatus = status.value"
+                @dragleave="hoveredStatus = null"
+                @drop="moveTask(status.value)"
             >
                 <h2
                     class="flex items-center justify-between px-1 text-sm font-medium"
@@ -99,6 +146,9 @@ const tasksByStatus = (status: TaskStatus) =>
                     v-for="task in tasksByStatus(status.value)"
                     :key="task.id"
                     :task="task"
+                    draggable="true"
+                    class="cursor-grab active:cursor-grabbing"
+                    @dragstart="startDrag($event, task)"
                 />
             </section>
         </div>

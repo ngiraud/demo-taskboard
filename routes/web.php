@@ -19,7 +19,7 @@ Route::prefix('{current_team}')
         Route::resource('projects', ProjectController::class)
             ->only(['index', 'store', 'show'])
             ->missing(fn (Request $request) => to_route('projects.index', $request->user()->currentTeam));
-        Route::resource('projects.tasks', TaskController::class)->only(['store']);
+        Route::resource('projects.tasks', TaskController::class)->only(['store', 'update']);
     });
 
 Route::middleware(['auth'])->group(function () {
