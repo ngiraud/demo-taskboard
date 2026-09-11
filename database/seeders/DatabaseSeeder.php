@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
         $bob = User::factory()->create(['name' => 'Bob Martin', 'email' => 'bob@example.com']);
         $eve = User::factory()->create(['name' => 'Eve Durand', 'email' => 'eve@example.com']);
 
-        $team = Team::factory()->create(['name' => 'Promo 3A']);
+        $team = Team::factory()->create(['name' => 'Studio Nova']);
 
         $team->members()->attach($john, ['role' => TeamRole::Owner->value]);
         $team->members()->attach($jane, ['role' => TeamRole::Admin->value]);
@@ -38,23 +38,23 @@ class DatabaseSeeder extends Seeder
             $user->switchTeam($team);
         }
 
-        $this->createProject($team, $john, 'Site du BDE', 'Le nouveau site du bureau des étudiants.', [$jane, $alice], [
+        $this->createProject($team, $john, 'Refonte du site', "Le nouveau site vitrine de l'agence.", [$jane, $alice], [
             ["Maquetter la page d'accueil", TaskStatus::Done, $jane],
-            ["Mettre en place l'authentification", TaskStatus::InProgress, $john],
-            ['Page des événements', TaskStatus::InProgress, $alice],
-            ["Formulaire d'adhésion", TaskStatus::Todo, null],
+            ['Mettre en place le SSO Google', TaskStatus::InProgress, $john],
+            ['Intégrer le blog', TaskStatus::InProgress, $alice],
+            ['Formulaire de contact', TaskStatus::Todo, null],
             ['Déployer sur Laravel Cloud', TaskStatus::Todo, $john],
         ]);
 
-        $this->createProject($team, $jane, 'Appli covoiturage', 'Partager les trajets pour venir en cours.', [$john, $bob], [
+        $this->createProject($team, $jane, 'Application client', 'Suivi des commandes pour les clients B2B.', [$john, $bob], [
             ['Définir le modèle de données', TaskStatus::Done, $jane],
-            ['Recherche de trajets', TaskStatus::InProgress, $bob],
-            ['Notifications de réservation', TaskStatus::Todo, $john],
+            ['API de suivi des commandes', TaskStatus::InProgress, $bob],
+            ['Notifications de livraison', TaskStatus::Todo, $john],
         ]);
 
-        $this->createProject($team, $alice, 'Hackathon 2026', "Organisation du hackathon de l'école.", [$bob], [
-            ['Trouver des sponsors', TaskStatus::InProgress, $alice],
-            ['Réserver les salles', TaskStatus::Todo, $bob],
+        $this->createProject($team, $alice, 'Maintenance clients', 'Mises à jour et correctifs des sites clients.', [$bob], [
+            ['Passer les projets en PHP 8.5', TaskStatus::InProgress, $alice],
+            ['Renouveler les certificats SSL', TaskStatus::Todo, $bob],
         ]);
     }
 

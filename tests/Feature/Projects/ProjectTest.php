@@ -39,15 +39,15 @@ test('users can create a project in their current team', function () {
 
     $response = $this->actingAs($user)
         ->post(route('projects.store', $team), [
-            'name' => 'Site du BDE',
-            'description' => 'Le nouveau site du bureau des étudiants.',
+            'name' => 'Refonte du site',
+            'description' => 'Le nouveau site vitrine.',
         ]);
 
     $project = $team->projects()->sole();
 
     $response->assertRedirect(route('projects.show', [$team, $project]));
 
-    expect($project->name)->toBe('Site du BDE')
+    expect($project->name)->toBe('Refonte du site')
         ->and($project->owner_id)->toBe($user->id)
         ->and($project->members->modelKeys())->toBe([$user->id]);
 });
