@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
+import { Plus } from '@lucide/vue';
+import CreateTaskModal from '@/components/CreateTaskModal.vue';
 import Heading from '@/components/Heading.vue';
 import TaskCard from '@/components/TaskCard.vue';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { useInitials } from '@/composables/useInitials';
 import { index, show } from '@/routes/projects';
 import type {
@@ -53,17 +56,27 @@ const tasksByStatus = (status: TaskStatus) =>
                 :description="project.description ?? undefined"
             />
 
-            <div class="flex -space-x-2">
-                <Avatar
-                    v-for="member in members"
-                    :key="member.id"
-                    :title="member.name"
-                    class="border-background size-8 border-2"
+            <div class="flex items-center gap-4">
+                <div class="flex -space-x-2">
+                    <Avatar
+                        v-for="member in members"
+                        :key="member.id"
+                        :title="member.name"
+                        class="border-background size-8 border-2"
+                    >
+                        <AvatarFallback class="text-xs">
+                            {{ getInitials(member.name) }}
+                        </AvatarFallback>
+                    </Avatar>
+                </div>
+
+                <CreateTaskModal
+                    :team="currentTeam"
+                    :project="project"
+                    :members="members"
                 >
-                    <AvatarFallback class="text-xs">
-                        {{ getInitials(member.name) }}
-                    </AvatarFallback>
-                </Avatar>
+                    <Button> <Plus /> New task </Button>
+                </CreateTaskModal>
             </div>
         </div>
 

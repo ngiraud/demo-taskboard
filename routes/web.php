@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\TaskController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Middleware\EnsureTeamMembership;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ Route::prefix('{current_team}')
         Route::resource('projects', ProjectController::class)
             ->only(['index', 'store', 'show'])
             ->missing(fn (Request $request) => to_route('projects.index', $request->user()->currentTeam));
+        Route::resource('projects.tasks', TaskController::class)->only(['store']);
     });
 
 Route::middleware(['auth'])->group(function () {

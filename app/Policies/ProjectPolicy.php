@@ -14,4 +14,12 @@ class ProjectPolicy
     {
         return $project->hasMember($user);
     }
+
+    /**
+     * Determine whether the user can create and update the tasks of the project.
+     */
+    public function manageTasks(User $user, Project $project): bool
+    {
+        return $project->hasMember($user);
+    }
 }
