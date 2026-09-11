@@ -17,11 +17,17 @@ Route::prefix('{current_team}')
     ->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
 
-        Route::resource('projects', ProjectController::class)
-            ->only(['index', 'store', 'show'])
+        Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
+        Route::post('projects', [ProjectController::class, 'store'])->name('projects.store');
+        Route::get('projects/{project}', [ProjectController::class, 'show'])
+            ->name('projects.show')
             ->missing(fn (Request $request) => to_route('projects.index', $request->user()->currentTeam));
-        Route::resource('projects.tasks', TaskController::class)->only(['store', 'update']);
-        Route::resource('projects.members', ProjectMemberController::class)->only(['store', 'destroy']);
+
+        Route::post('projects/{project}/tasks', [TaskController::class, 'store'])->name('projects.tasks.store');
+        Route::patch('projects/{project}/tasks/{task}', [TaskController::class, 'update'])->name('projects.tasks.update');
+
+        Route::post('projects/{project}/members', [ProjectMemberController::class, 'store'])->name('projects.members.store');
+        Route::delete('projects/{project}/members/{member}', [ProjectMemberController::class, 'destroy'])->name('projects.members.destroy');
     });
 
 Route::middleware(['auth'])->group(function () {
