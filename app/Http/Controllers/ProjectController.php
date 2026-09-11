@@ -51,15 +51,22 @@ class ProjectController extends Controller
      *
      * The current team is resolved so that the project binding is scoped to it.
      */
-    public function show(Team $currentTeam, Project $project): Response
+    public function show(Request $request, Team $currentTeam, Project $project): Response
     {
         Gate::authorize('view', $project);
+
+        $members = $project->members()->orderBy('name')->get(['users.id', 'users.name']);
+        $canManageMembers = $request->user()->can('manageMembers', $project);
 
         return Inertia::render('projects/Show', [
             'project' => $project,
             'tasks' => $project->tasks()->with('assignee:id,name')->oldest('id')->get(),
-            'members' => $project->members()->orderBy('name')->get(['users.id', 'users.name']),
+            'members' => $members,
             'statuses' => TaskStatus::options(),
+            'canManageMembers' => $canManageMembers,
+            'availableMembers' => $canManageMembers
+                ? $currentTeam->members()->whereKeyNot($members->modelKeys())->orderBy('name')->get(['users.id', 'users.name'])
+                : [],
         ]);
     }
 }

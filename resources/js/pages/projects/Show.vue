@@ -4,10 +4,9 @@ import { Plus } from '@lucide/vue';
 import { ref } from 'vue';
 import CreateTaskModal from '@/components/CreateTaskModal.vue';
 import Heading from '@/components/Heading.vue';
+import ProjectMembers from '@/components/ProjectMembers.vue';
 import TaskCard from '@/components/TaskCard.vue';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { useInitials } from '@/composables/useInitials';
 import { index, show } from '@/routes/projects';
 import { update } from '@/routes/projects/tasks';
 import type {
@@ -24,6 +23,8 @@ const props = defineProps<{
     tasks: Task[];
     members: ProjectMember[];
     statuses: StatusOption[];
+    availableMembers: ProjectMember[];
+    canManageMembers: boolean;
     currentTeam: Team;
 }>();
 
@@ -41,8 +42,6 @@ defineOptions({
         ],
     }),
 });
-
-const { getInitials } = useInitials();
 
 const tasksByStatus = (status: TaskStatus) =>
     props.tasks.filter((task) => task.status === status);
@@ -98,18 +97,13 @@ function moveTask(status: TaskStatus) {
             />
 
             <div class="flex items-center gap-4">
-                <div class="flex -space-x-2">
-                    <Avatar
-                        v-for="member in members"
-                        :key="member.id"
-                        :title="member.name"
-                        class="border-background size-8 border-2"
-                    >
-                        <AvatarFallback class="text-xs">
-                            {{ getInitials(member.name) }}
-                        </AvatarFallback>
-                    </Avatar>
-                </div>
+                <ProjectMembers
+                    :team="currentTeam"
+                    :project="project"
+                    :members="members"
+                    :available-members="availableMembers"
+                    :can-manage-members="canManageMembers"
+                />
 
                 <CreateTaskModal
                     :team="currentTeam"

@@ -22,4 +22,12 @@ class ProjectPolicy
     {
         return $project->hasMember($user);
     }
+
+    /**
+     * Determine whether the user can add and remove members of the project.
+     */
+    public function manageMembers(User $user, Project $project): bool
+    {
+        return $project->owner_id === $user->id;
+    }
 }
