@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\TeamRole;
+use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -403,6 +404,43 @@ test('users cannot switch to team they dont belong to', function () {
         ->post(route('teams.switch', $team));
 
     $response->assertForbidden();
+});
+
+test('switching team keeps the user on the same page when it only depends on the team', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create();
+
+    $team->members()->attach($user, ['role' => TeamRole::Member->value]);
+
+    $this->actingAs($user)
+        ->from(route('projects.index', $user->currentTeam))
+        ->post(route('teams.switch', $team))
+        ->assertRedirect(route('projects.index', $team));
+});
+
+test('switching team from a project page redirects to the projects of the new team', function () {
+    $user = User::factory()->create();
+    $project = Project::factory()->for($user->currentTeam)->for($user, 'owner')->create();
+    $team = Team::factory()->create();
+
+    $team->members()->attach($user, ['role' => TeamRole::Member->value]);
+
+    $this->actingAs($user)
+        ->from(route('projects.show', [$user->currentTeam, $project]))
+        ->post(route('teams.switch', $team))
+        ->assertRedirect(route('projects.index', $team));
+});
+
+test('switching team from a page outside of a team redirects back', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create();
+
+    $team->members()->attach($user, ['role' => TeamRole::Member->value]);
+
+    $this->actingAs($user)
+        ->from(route('teams.index'))
+        ->post(route('teams.switch', $team))
+        ->assertRedirect(route('teams.index'));
 });
 
 test('guests cannot access teams', function () {

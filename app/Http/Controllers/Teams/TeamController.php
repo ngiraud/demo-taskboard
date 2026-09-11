@@ -14,8 +14,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class TeamController extends Controller
 {
@@ -114,7 +117,7 @@ class TeamController extends Controller
 
         $request->user()->switchTeam($team);
 
-        return back();
+        return redirect($this->urlAfterSwitch($team));
     }
 
     /**
@@ -170,5 +173,39 @@ class TeamController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Team deleted.')]);
 
         return to_route('teams.index');
+    }
+
+    /**
+     * Get the URL to redirect to after switching to the given team.
+     *
+     * The user stays on the same page when it only depends on the team (dashboard, projects list).
+     * When the page shows a model of the previous team (a project), they land on the index of that
+     * section, or on the dashboard. Pages outside of a team (settings) are simply reloaded.
+     */
+    protected function urlAfterSwitch(Team $team): string
+    {
+        $previousUrl = url()->previous();
+
+        try {
+            $previousRoute = Route::getRoutes()->match(Request::create($previousUrl));
+        } catch (HttpExceptionInterface) {
+            return $previousUrl;
+        }
+
+        $previousRouteName = $previousRoute->getName();
+
+        if ($previousRouteName === null || ! in_array('current_team', $previousRoute->parameterNames(), true)) {
+            return $previousUrl;
+        }
+
+        $candidateRouteNames = [$previousRouteName, Str::beforeLast($previousRouteName, '.').'.index'];
+
+        foreach ($candidateRouteNames as $routeName) {
+            if (Route::getRoutes()->getByName($routeName)?->parameterNames() === ['current_team']) {
+                return route($routeName, ['current_team' => $team->slug]);
+            }
+        }
+
+        return route('dashboard', ['current_team' => $team->slug]);
     }
 }
