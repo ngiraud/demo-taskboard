@@ -64,15 +64,36 @@ function startDrag(event: DragEvent, task: Task) {
     event.dataTransfer?.setData('text/plain', String(task.id));
 }
 
-function moveTask(status: TaskStatus) {
-    const movedTask = props.tasks.find(
+function dropTask(status: TaskStatus) {
+    const droppedTask = props.tasks.find(
         (task) => task.id === draggedTaskId.value,
     );
 
     draggedTaskId.value = null;
     hoveredStatus.value = null;
 
-    if (!movedTask || movedTask.status === status) {
+    if (droppedTask) {
+        moveTask(droppedTask, status);
+    }
+}
+
+const isLastColumn = (status: TaskStatus) =>
+    props.statuses.at(-1)?.value === status;
+
+// Called when a card emits "advance": the page knows the column order, the card does not.
+function advanceTask(task: Task) {
+    const index = props.statuses.findIndex(
+        (status) => status.value === task.status,
+    );
+    const nextStatus = props.statuses[index + 1];
+
+    if (nextStatus) {
+        moveTask(task, nextStatus.value);
+    }
+}
+
+function moveTask(movedTask: Task, status: TaskStatus) {
+    if (movedTask.status === status) {
         return;
     }
 
@@ -147,7 +168,7 @@ function moveTask(status: TaskStatus) {
                 "
                 @dragover.prevent="hoveredStatus = status.value"
                 @dragleave="hoveredStatus = null"
-                @drop="moveTask(status.value)"
+                @drop="dropTask(status.value)"
             >
                 <h2
                     class="flex items-center justify-between px-1 text-sm font-medium"
@@ -162,9 +183,11 @@ function moveTask(status: TaskStatus) {
                     v-for="task in tasksByStatus(status.value)"
                     :key="task.id"
                     :task="task"
+                    :can-advance="!isLastColumn(status.value)"
                     draggable="true"
                     class="cursor-grab active:cursor-grabbing"
                     @dragstart="startDrag($event, task)"
+                    @advance="advanceTask(task)"
                 />
             </section>
         </div>
