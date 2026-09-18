@@ -3,11 +3,15 @@
 namespace App\Models;
 
 use App\Enums\TaskStatus;
+use App\Observers\TaskObserver;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -21,8 +25,10 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read Project $project
  * @property-read User|null $assignee
+ * @property-read Collection<int, Activity> $activities
  */
 #[Fillable(['title', 'description', 'status', 'assignee_id'])]
+#[ObservedBy(TaskObserver::class)]
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
@@ -46,6 +52,16 @@ class Task extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assignee_id');
+    }
+
+    /**
+     * Get the activities recorded for the task.
+     *
+     * @return HasMany<Activity, $this>
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
     }
 
     /**

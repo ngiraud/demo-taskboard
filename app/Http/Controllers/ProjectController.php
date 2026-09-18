@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\TaskStatus;
 use App\Http\Requests\StoreProjectRequest;
+use App\Http\Resources\ActivityResource;
 use App\Models\Project;
 use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
@@ -67,6 +68,13 @@ class ProjectController extends Controller
             'availableMembers' => $canManageMembers
                 ? $currentTeam->members()->whereKeyNot($members->modelKeys())->orderBy('name')->get(['users.id', 'users.name'])
                 : [],
+            // The timeline is not needed to draw the board, so it is fetched in a
+            // second request, right after the page has rendered...
+            // resolve() unwraps the resource: the API keeps its "data" envelope, but an
+            // Inertia prop is consumed directly by the component, so it stays a plain array...
+            'activities' => Inertia::defer(fn () => ActivityResource::collection(
+                $project->activities()->with('user:id,name')->latest('id')->limit(15)->get(),
+            )->resolve()),
         ]);
     }
 }

@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
-import { Plus } from '@lucide/vue';
+import { Deferred, Head, router, usePoll } from '@inertiajs/vue3';
+import { Pause, Play, Plus } from '@lucide/vue';
 import { ref } from 'vue';
+import ActivityFeed from '@/components/ActivityFeed.vue';
 import CreateTaskModal from '@/components/CreateTaskModal.vue';
 import Heading from '@/components/Heading.vue';
 import ProjectMembers from '@/components/ProjectMembers.vue';
 import TaskCard from '@/components/TaskCard.vue';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { index, show } from '@/routes/projects';
 import { update } from '@/routes/projects/tasks';
 import type {
+    Activity,
     Project,
     ProjectMember,
     StatusOption,
@@ -21,6 +24,7 @@ import type {
 const props = defineProps<{
     project: Project;
     tasks: Task[];
+    activities?: Activity[];
     members: ProjectMember[];
     statuses: StatusOption[];
     availableMembers: ProjectMember[];
@@ -41,6 +45,12 @@ defineOptions({
             },
         ],
     }),
+});
+
+// Ask the server for the board and the timeline every few seconds. A task created
+// from Slack shows up on its own, without a websocket in sight...
+const { start, stop, polling } = usePoll(3000, {
+    only: ['tasks', 'activities'],
 });
 
 const tasksByStatus = (status: TaskStatus) =>
@@ -97,6 +107,18 @@ function moveTask(status: TaskStatus) {
             />
 
             <div class="flex items-center gap-4">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    :title="
+                        polling ? 'Pause live updates' : 'Resume live updates'
+                    "
+                    @click="polling ? stop() : start()"
+                >
+                    <Pause v-if="polling" />
+                    <Play v-else />
+                </Button>
+
                 <ProjectMembers
                     :team="currentTeam"
                     :project="project"
@@ -146,5 +168,28 @@ function moveTask(status: TaskStatus) {
                 />
             </section>
         </div>
+
+        <section class="mt-4 rounded-xl border p-4">
+            <h2 class="mb-3 text-sm font-medium">Activity</h2>
+
+            <Deferred data="activities">
+                <template #fallback>
+                    <div class="flex flex-col gap-2">
+                        <Skeleton
+                            v-for="line in 3"
+                            :key="line"
+                            class="h-5 w-full"
+                        />
+                    </div>
+                </template>
+
+                <template #default="{ reloading }">
+                    <ActivityFeed
+                        :activities="activities ?? []"
+                        :class="{ 'opacity-50': reloading }"
+                    />
+                </template>
+            </Deferred>
+        </section>
     </div>
 </template>

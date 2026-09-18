@@ -27,3 +27,12 @@ export type Task = {
     assignee_id: number | null;
     assignee: ProjectMember | null;
 };
+
+export type Activity = {
+    id: number;
+    author: string;
+    description: string;
+    via: string | null;
+    happened_at: string;
+    happened_on: string;
+};

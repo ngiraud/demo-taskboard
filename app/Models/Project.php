@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property-read User $owner
  * @property-read Collection<int, User> $members
  * @property-read Collection<int, Task> $tasks
+ * @property-read Collection<int, Activity> $activities
  */
 #[Fillable(['name', 'description', 'owner_id'])]
 class Project extends Model
@@ -69,6 +70,16 @@ class Project extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    /**
+     * Get the activities recorded for the project.
+     *
+     * @return HasMany<Activity, $this>
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
     }
 
     /**
