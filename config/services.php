@@ -33,6 +33,13 @@ return [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
+
+        // Shared secret used to verify that a slash command really comes from Slack...
+        'signing_secret' => env('SLACK_SIGNING_SECRET'),
+
+        // Slash commands carry the sender's Slack id, which is matched against the
+        // slack_user_id column on users. This one is only used to seed a linked account...
+        'demo_user_id' => env('SLACK_DEMO_USER_ID'),
     ],
 
 ];

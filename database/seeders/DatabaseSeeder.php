@@ -25,20 +25,27 @@ class DatabaseSeeder extends Seeder
         $bob = User::factory()->create(['name' => 'Bob Martin', 'email' => 'bob@example.com']);
         $eve = User::factory()->create(['name' => 'Eve Durand', 'email' => 'eve@example.com']);
 
+        // The account the Slack slash command acts as, matched on the Slack identifier...
+        $nicolas = User::factory()->create([
+            'name' => 'Nicolas Giraud',
+            'email' => 'contact@ngiraud.me',
+            'slack_user_id' => config('services.slack.demo_user_id'),
+        ]);
+
         $team = Team::factory()->create(['name' => 'Studio Nova']);
 
         $team->members()->attach($john, ['role' => TeamRole::Owner->value]);
         $team->members()->attach($jane, ['role' => TeamRole::Admin->value]);
 
-        foreach ([$alice, $bob, $eve] as $member) {
+        foreach ([$alice, $bob, $eve, $nicolas] as $member) {
             $team->members()->attach($member, ['role' => TeamRole::Member->value]);
         }
 
-        foreach ([$john, $jane, $alice, $bob, $eve] as $user) {
+        foreach ([$john, $jane, $alice, $bob, $eve, $nicolas] as $user) {
             $user->switchTeam($team);
         }
 
-        $this->createProject($team, $john, 'Refonte du site', "Le nouveau site vitrine de l'agence.", [$jane, $alice], [
+        $this->createProject($team, $john, 'Refonte du site', "Le nouveau site vitrine de l'agence.", [$jane, $alice, $nicolas], [
             ["Maquetter la page d'accueil", TaskStatus::Done, $jane],
             ['Mettre en place le SSO Google', TaskStatus::InProgress, $john],
             ['Intégrer le blog', TaskStatus::InProgress, $alice],
